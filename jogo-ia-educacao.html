@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>IA na Educação — Missão Docente</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #2563EB;
+    --blue-light: #DBEAFE;
+    --yellow: #F59E0B;
+    --yellow-light: #FEF3C7;
+    --purple: #8B5CF6;
+    --purple-light: #EDE9FE;
+    --green: #10B981;
+    --green-light: #D1FAE5;
+    --red: #EF4444;
+    --red-light: #FEE2E2;
+    --bg: #F8FAFF;
+    --white: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 4px 20px rgba(37,99,235,0.10);
+    --shadow-lg: 0 8px 32px rgba(37,99,235,0.15);
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  #app {
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    position: relative;
+    background: var(--bg);
+  }
+
+  /* ── SCREEN SYSTEM ── */
+  .screen {
+    display: none;
+    min-height: 100vh;
+    padding: 0 0 32px;
+    animation: fadeIn 0.35s ease;
+  }
+  .screen.active { display: flex; flex-direction: column; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── PLANET HEADER ── */
+  .planet-header {
+    position: relative;
+    padding: 40px 24px 28px;
+    text-align: center;
+    overflow: hidden;
+  }
+  .planet-header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(160deg, var(--blue) 0%, var(--purple) 100%);
+    z-index: 0;
+  }
+  .planet-header > * { position: relative; z-index: 1; }
+  .planet-emoji { font-size: 52px; display: block; margin-bottom: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2)); }
+  .phase-label {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+  }
+  .phase-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.2;
+  }
+  .phase-subtitle {
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    margin-top: 6px;
+  }
+
+  /* ── SCORE BAR ── */
+  .score-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .score-pill {
+    background: var(--yellow-light);
+    color: var(--yellow);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+  .progress-dots {
+    display: flex; gap: 5px;
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .dot.done { background: var(--green); }
+  .dot.active { background: var(--blue); }
+
+  /* ── CONTENT AREA ── */
+  .content {
+    flex: 1;
+    padding: 20px 20px 8px;
+  }
+
+  /* ── QUESTION CARD ── */
+  .question-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .q-number {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 8px;
+  }
+  .q-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--text);
+  }
+
+  /* ── OPTIONS ── */
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn {
+    width: 100%;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .option-btn:active { transform: scale(0.98); }
+  .option-btn.selected-correct {
+    background: var(--green-light);
+    border-color: var(--green);
+    color: #065F46;
+  }
+  .option-btn.selected-wrong {
+    background: var(--red-light);
+    border-color: var(--red);
+    color: #7F1D1D;
+  }
+  .option-btn.reveal-correct {
+    background: var(--green-light);
+    border-color: var(--green);
+    color: #065F46;
+    opacity: 0.7;
+  }
+  .option-btn.disabled { pointer-events: none; opacity: 0.5; }
+  .option-letter {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--blue-light);
+    color: var(--blue);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── FEEDBACK ── */
+  .feedback-box {
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+    margin-top: 12px;
+    display: none;
+  }
+  .feedback-box.correct { background: var(--green-light); color: #065F46; display: block; }
+  .feedback-box.wrong { background: var(--red-light); color: #7F1D1D; display: block; }
+
+  /* ── NEXT BUTTON ── */
+  .btn-primary {
+    width: calc(100% - 40px);
+    margin: 12px 20px 0;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    padding: 16px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(37,99,235,0.3);
+  }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .btn-secondary {
+    background: white;
+    color: var(--blue);
+    border: 2px solid var(--blue);
+    border-radius: var(--radius);
+    padding: 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: calc(100% - 40px);
+    margin: 8px 20px 0;
+  }
+
+  /* ── DRAG & DROP ── */
+  .drag-area { margin-bottom: 16px; }
+  .drag-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .drag-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px;
+    background: var(--blue-light);
+    border-radius: var(--radius-sm);
+    border: 2px dashed var(--blue);
+  }
+  .drag-item {
+    background: white;
+    border: 2px solid var(--blue);
+    color: var(--blue);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: grab;
+    user-select: none;
+    transition: all 0.2s;
+    touch-action: none;
+  }
+  .drag-item:active { cursor: grabbing; transform: scale(1.05); box-shadow: var(--shadow-lg); }
+  .drag-item.dragging { opacity: 0.4; }
+  .drop-zones { display: flex; flex-direction: column; gap: 12px; }
+  .drop-zone {
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    min-height: 80px;
+    border: 2px dashed var(--border);
+    background: white;
+    transition: all 0.2s;
+  }
+  .drop-zone.over {
+    border-color: var(--purple);
+    background: var(--purple-light);
+  }
+  .drop-zone-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .drop-zone-items { display: flex; flex-wrap: wrap; gap: 6px; min-height: 32px; }
+  .drop-item {
+    background: var(--purple-light);
+    border: 2px solid var(--purple);
+    color: var(--purple);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: grab;
+  }
+
+  /* ── TRUE/FALSE ── */
+  .tf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .tf-btn {
+    border: none;
+    border-radius: var(--radius);
+    padding: 20px 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .tf-btn.true-btn { background: var(--green-light); color: #065F46; }
+  .tf-btn.false-btn { background: var(--red-light); color: #7F1D1D; }
+  .tf-btn:active { transform: scale(0.96); }
+  .tf-btn.selected-correct { box-shadow: 0 0 0 3px var(--green); }
+  .tf-btn.selected-wrong { box-shadow: 0 0 0 3px var(--red); opacity: 0.6; }
+  .tf-icon { font-size: 28px; }
+
+  /* ── PASSWORD GATE ── */
+  .password-gate {
+    background: white;
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    margin: 20px;
+  }
+  .gate-icon { font-size: 48px; margin-bottom: 12px; }
+  .gate-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .gate-riddle {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 16px;
+    background: var(--yellow-light);
+    padding: 12px;
+    border-radius: var(--radius-sm);
+  }
+  .gate-input {
+    width: 100%;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text);
+    outline: none;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    transition: border-color 0.2s;
+  }
+  .gate-input:focus { border-color: var(--blue); }
+  .gate-input.error { border-color: var(--red); animation: shake 0.3s; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+  .gate-hint { font-size: 12px; color: var(--red); margin-top: 8px; display: none; }
+  .gate-hint.show { display: block; }
+
+  /* ── WELCOME SCREEN ── */
+  .welcome-hero {
+    background: linear-gradient(160deg, var(--blue) 0%, var(--purple) 100%);
+    padding: 50px 24px 36px;
+    text-align: center;
+    color: white;
+  }
+  .welcome-logo { font-size: 64px; margin-bottom: 12px; }
+  .welcome-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .welcome-sub {
+    font-size: 14px;
+    opacity: 0.85;
+    line-height: 1.6;
+  }
+  .welcome-body { padding: 24px 20px; }
+  .welcome-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .welcome-card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--blue);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .phases-list { display: flex; flex-direction: column; gap: 10px; }
+  .phase-item {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 14px; color: var(--text);
+  }
+  .phase-badge {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .form-group { margin-bottom: 14px; }
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .form-input {
+    width: 100%;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 13px 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--blue); }
+
+  /* ── FINAL SCREEN ── */
+  .final-hero {
+    background: linear-gradient(160deg, #1E3A8A 0%, var(--purple) 100%);
+    padding: 48px 24px 32px;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .stars {
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px);
+    background-size: 24px 24px;
+    opacity: 0.3;
+  }
+  .final-hero > * { position: relative; z-index: 1; }
+  .final-medal { font-size: 72px; margin-bottom: 8px; }
+  .final-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .final-badge-name {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 16px;
+  }
+  .score-big {
+    background: rgba(255,255,255,0.15);
+    border-radius: var(--radius);
+    padding: 16px 24px;
+    display: inline-block;
+  }
+  .score-number {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .score-label { font-size: 12px; opacity: 0.8; }
+  .final-body { padding: 20px; }
+  .badge-card {
+    background: linear-gradient(135deg, var(--yellow-light), #FFF7ED);
+    border: 2px solid var(--yellow);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .badge-icon { font-size: 48px; margin-bottom: 8px; }
+  .badge-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .badge-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  .tip-card {
+    background: var(--blue-light);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .tip-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--blue);
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tip-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+  .phase-summary { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .summary-item {
+    background: white;
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .summary-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .summary-score {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--blue);
+  }
+
+  /* ── CONFETTI ── */
+  .confetti-container {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    overflow: hidden;
+  }
+  .confetti-piece {
+    position: absolute;
+    width: 10px; height: 10px;
+    top: -20px;
+    animation: confetti-fall 3s linear forwards;
+    border-radius: 2px;
+  }
+  @keyframes confetti-fall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* ── PHASE COMPLETE ── */
+  .phase-complete {
+    background: white;
+    border-radius: var(--radius);
+    padding: 28px 20px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    margin: 20px;
+  }
+  .pc-icon { font-size: 56px; margin-bottom: 12px; }
+  .pc-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .pc-score {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  .pc-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ════════════════════════════════
+       TELA 0 — BEM-VINDO
+  ════════════════════════════════ -->
+  <div class="screen active" id="screen-welcome">
+    <div class="welcome-hero">
+      <div class="welcome-logo">🚀</div>
+      <div class="welcome-title">Missão Docente:<br>IA na Educação</div>
+      <div class="welcome-sub">Uma jornada interativa pelo documento orientador do MEC sobre IA na Educação Básica</div>
+    </div>
+    <div class="welcome-body">
+      <div class="welcome-card">
+        <div class="welcome-card-title">Sua missão, professor(a)</div>
+        <div class="phases-list">
+          <div class="phase-item">
+            <div class="phase-badge" style="background:#DBEAFE">🌍</div>
+            <div><strong>Fase 1</strong> — Conceitos base (múltipla escolha)</div>
+          </div>
+          <div class="phase-item">
+            <div class="phase-badge" style="background:#EDE9FE">🪐</div>
+            <div><strong>Fase 2</strong> — Categorize os letramentos (arrastar e soltar)</div>
+          </div>
+          <div class="phase-item">
+            <div class="phase-badge" style="background:#FEF3C7">⭐</div>
+            <div><strong>Fase 3</strong> — Risco ou benefício? (verdadeiro ou falso)</div>
+          </div>
+          <div class="phase-item">
+            <div class="phase-badge" style="background:#D1FAE5">🌟</div>
+            <div><strong>Fase 4</strong> — Missão final: Centralidade Humana</div>
+          </div>
+        </div>
+      </div>
+      <div class="welcome-card">
+        <div class="welcome-card-title">Identifique-se, explorador(a)</div>
+        <div class="form-group">
+          <label class="form-label">Seu nome</label>
+          <input type="text" class="form-input" id="input-name" placeholder="Ex: Professora Ana Lima" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unidade de Lotação</label>
+          <select class="form-input" id="input-subject">
+            <option value="" disabled selected>Selecione sua unidade</option>
+            <option value="E. M. Major José Tenório de Albuquerque Lins">Escola Municipal Major José Tenório de Albuquerque Lins</option>
+            <option value="E. M. Lagoa do Peri-Peri">Escola Municipal Lagoa do Peri-Peri</option>
+            <option value="Gestor/Coordenador Escolar">Gestor/Coordenador Escolar</option>
+            <option value="Técnico SEMED-BM">Técnico SEMED-BM</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-start" onclick="startGame()">Iniciar Missão 🚀</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       FASE 1 — MÚLTIPLA ESCOLHA
+  ════════════════════════════════ -->
+  <div class="screen" id="screen-phase1">
+    <div class="planet-header" style="">
+      <span class="planet-emoji">🌍</span>
+      <div class="phase-label">Fase 1 de 4</div>
+      <div class="phase-title">Planeta Conceitos</div>
+      <div class="phase-subtitle">O que você já sabe sobre IA na educação?</div>
+    </div>
+    <div class="score-bar">
+      <span id="p1-score-label" class="score-pill">⭐ 0 pts</span>
+      <div class="progress-dots" id="p1-dots"></div>
+    </div>
+    <div class="content" id="p1-content"></div>
+    <button class="btn-primary" id="p1-next" style="display:none" onclick="phase1Next()">Próxima pergunta →</button>
+  </div>
+
+  <!-- PORTA 1 — SENHA -->
+  <div class="screen" id="screen-gate1">
+    <div class="planet-header">
+      <span class="planet-emoji">🔐</span>
+      <div class="phase-label">Portal entre fases</div>
+      <div class="phase-title">Abra o Portal!</div>
+      <div class="phase-subtitle">Resolva o enigma para continuar</div>
+    </div>
+    <div class="phase-complete">
+      <div class="pc-icon">🎉</div>
+      <div class="pc-title">Fase 1 completa!</div>
+      <div class="pc-score" id="gate1-score">0</div>
+      <div class="pc-sub">pontos conquistados</div>
+    </div>
+    <div class="password-gate">
+      <div class="gate-icon">🧩</div>
+      <div class="gate-title">Enigma do Portal</div>
+      <div class="gate-riddle">
+        💬 <em>"Todo uso de IA na escola deve vir acompanhado do ensino _______ IA."</em><br><br>
+        A palavra que completa esta frase do documento do MEC é sua senha para a próxima fase.
+      </div>
+      <input type="text" class="gate-input" id="gate1-input" placeholder="_ _ _ _ _ _" maxlength="6" oninput="checkGate1()">
+      <div class="gate-hint" id="gate1-hint">Dica: não é "com" — é a preposição que indica conhecimento 🤔</div>
+    </div>
+    <button class="btn-primary" id="gate1-btn" onclick="openGate1()" disabled>Abrir Portal 🚪</button>
+  </div>
+
+  <!-- ════════════════════════════════
+       FASE 2 — ARRASTAR E SOLTAR
+  ════════════════════════════════ -->
+  <div class="screen" id="screen-phase2">
+    <div class="planet-header" style="--header-from:#7C3AED;--header-to:#EC4899">
+      <span class="planet-emoji">🪐</span>
+      <div class="phase-label">Fase 2 de 4</div>
+      <div class="phase-title">Planeta Letramentos</div>
+      <div class="phase-subtitle">Classifique cada aprendizagem no conjunto certo</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#7C3AED,#EC4899); height:6px;"></div>
+    <div class="score-bar">
+      <span id="p2-score-label" class="score-pill">⭐ 0 pts</span>
+      <span style="font-size:12px;color:var(--text-muted)">Arraste para a categoria correta</span>
+    </div>
+    <div class="content" id="p2-content"></div>
+    <button class="btn-primary" id="p2-check" onclick="checkDrag()">Verificar classificação ✓</button>
+  </div>
+
+  <!-- PORTA 2 — SENHA -->
+  <div class="screen" id="screen-gate2">
+    <div class="planet-header">
+      <span class="planet-emoji">🔐</span>
+      <div class="phase-label">Portal entre fases</div>
+      <div class="phase-title">Abra o Portal!</div>
+    </div>
+    <div class="phase-complete">
+      <div class="pc-icon">🌟</div>
+      <div class="pc-title">Fase 2 completa!</div>
+      <div class="pc-score" id="gate2-score">0</div>
+      <div class="pc-sub">pontos conquistados</div>
+    </div>
+    <div class="password-gate">
+      <div class="gate-icon">🧩</div>
+      <div class="gate-title">Enigma do Portal</div>
+      <div class="gate-riddle">
+        💬 Sou o risco mais perigoso do uso passivo da IA: quando a tecnologia pensa no lugar de quem deveria pensar. Me chamo "descarregamento _______".<br><br>
+        Digite a última palavra (em português) para abrir o portal.
+      </div>
+      <input type="text" class="gate-input" id="gate2-input" placeholder="_ _ _ _ _ _ _ _ _ _" maxlength="10" oninput="checkGate2()">
+      <div class="gate-hint" id="gate2-hint">Dica: é uma palavra que remete ao funcionamento mental 🧠</div>
+    </div>
+    <button class="btn-primary" id="gate2-btn" onclick="openGate2()" disabled>Abrir Portal 🚪</button>
+  </div>
+
+  <!-- ════════════════════════════════
+       FASE 3 — VERDADEIRO/FALSO
+  ════════════════════════════════ -->
+  <div class="screen" id="screen-phase3">
+    <div class="planet-header">
+      <span class="planet-emoji">⭐</span>
+      <div class="phase-label">Fase 3 de 4</div>
+      <div class="phase-title">Nebulosa dos Riscos</div>
+      <div class="phase-subtitle">Verdadeiro ou falso sobre oportunidades e riscos da IA?</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#F59E0B,#EF4444); height:6px;"></div>
+    <div class="score-bar">
+      <span id="p3-score-label" class="score-pill">⭐ 0 pts</span>
+      <div class="progress-dots" id="p3-dots"></div>
+    </div>
+    <div class="content" id="p3-content"></div>
+    <button class="btn-primary" id="p3-next" style="display:none" onclick="phase3Next()">Próxima →</button>
+  </div>
+
+  <!-- PORTA 3 — SENHA -->
+  <div class="screen" id="screen-gate3">
+    <div class="planet-header">
+      <span class="planet-emoji">🔐</span>
+      <div class="phase-label">Portal Final</div>
+      <div class="phase-title">Último Portal!</div>
+    </div>
+    <div class="phase-complete">
+      <div class="pc-icon">🏆</div>
+      <div class="pc-title">Fase 3 completa!</div>
+      <div class="pc-score" id="gate3-score">0</div>
+      <div class="pc-sub">pontos conquistados</div>
+    </div>
+    <div class="password-gate">
+      <div class="gate-icon">🧩</div>
+      <div class="gate-title">O Enigma Final</div>
+      <div class="gate-riddle">
+        💬 O documento do MEC diz que a IA deve ser incorporada à educação sempre como _______ para o desenvolvimento humano — nunca como fim em si mesma.<br><br>
+        Uma única palavra. Pense bem!
+      </div>
+      <input type="text" class="gate-input" id="gate3-input" placeholder="_ _ _ _" maxlength="6" oninput="checkGate3()">
+      <div class="gate-hint" id="gate3-hint">Dica: instrumento, recurso, caminho... 🛤️</div>
+    </div>
+    <button class="btn-primary" id="gate3-btn" onclick="openGate3()" disabled>Entrar na Missão Final 🌟</button>
+  </div>
+
+  <!-- ════════════════════════════════
+       FASE 4 — MÚLTIPLA ESCOLHA FINAL
+  ════════════════════════════════ -->
+  <div class="screen" id="screen-phase4">
+    <div class="planet-header">
+      <span class="planet-emoji">🌟</span>
+      <div class="phase-label">Fase Final</div>
+      <div class="phase-title">Estrela da Centralidade</div>
+      <div class="phase-subtitle">O professor no centro — as decisões que importam</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#10B981,#2563EB); height:6px;"></div>
+    <div class="score-bar">
+      <span id="p4-score-label" class="score-pill">⭐ 0 pts</span>
+      <div class="progress-dots" id="p4-dots"></div>
+    </div>
+    <div class="content" id="p4-content"></div>
+    <button class="btn-primary" id="p4-next" style="display:none" onclick="phase4Next()">Próxima →</button>
+  </div>
+
+  <!-- ════════════════════════════════
+       TELA FINAL
+  ════════════════════════════════ -->
+  <div class="screen" id="screen-final">
+    <div class="final-hero">
+      <div class="stars"></div>
+      <div class="final-medal" id="final-medal">🏆</div>
+      <div class="final-name" id="final-name">Parabéns, Professora!</div>
+      <div class="final-badge-name" id="final-badge-name">Missão concluída!</div>
+      <div class="score-big">
+        <div class="score-number" id="final-score-num">0</div>
+        <div class="score-label">pontos totais</div>
+      </div>
+    </div>
+    <div class="final-body">
+      <div class="badge-card" id="final-badge-card">
+        <div class="badge-icon" id="badge-icon">🤖</div>
+        <div class="badge-title" id="badge-title">Explorador(a) Digital</div>
+        <div class="badge-desc" id="badge-desc">Você completou a missão!</div>
+      </div>
+      <div class="phase-summary">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Resumo por fase</div>
+        <div class="summary-item"><span class="summary-name">🌍 Fase 1 — Conceitos</span><span class="summary-score" id="sum1">0 pts</span></div>
+        <div class="summary-item"><span class="summary-name">🪐 Fase 2 — Letramentos</span><span class="summary-score" id="sum2">0 pts</span></div>
+        <div class="summary-item"><span class="summary-name">⭐ Fase 3 — Riscos</span><span class="summary-score" id="sum3">0 pts</span></div>
+        <div class="summary-item"><span class="summary-name">🌟 Fase 4 — Centralidade</span><span class="summary-score" id="sum4">0 pts</span></div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-title">💡 Dica pedagógica — reproduza em sua aula!</div>
+        <div class="tip-text">Este jogo foi criado com base no documento <em>IA na Educação Básica</em> (MEC, 2026). Você pode usar a mesma estratégia com seus alunos: combine múltipla escolha, arrastar e soltar, verdadeiro/falso e senhas entre fases para criar percursos gamificados com qualquer conteúdo curricular. Ferramentas como <strong>Genially, Wordwall, Google Forms</strong> ou HTML simples permitem replicar essa estrutura!</div>
+      </div>
+      <button class="btn-secondary" onclick="restartGame()">↩ Jogar novamente</button>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<div class="confetti-container" id="confetti"></div>
+
+<script>
+// ════════════════════════════════════════════════
+// DADOS DO JOGO
+// ════════════════════════════════════════════════
+
+const PHASE1_QUESTIONS = [
+  {
+    q: "O documento do MEC define que a escola precisa trabalhar a IA em duas dimensões. Quais são elas?",
+    options: [
+      "Usar IA e proibir IA",
+      "Ensinar COM IA e ensinar SOBRE IA",
+      "IA generativa e IA preditiva",
+      "IA para alunos e IA para professores"
+    ],
+    correct: 1,
+    feedback: "✅ Exato! Ensinar COM IA (como recurso pedagógico) e ensinar SOBRE IA (como objeto de conhecimento) são as duas dimensões que devem caminhar juntas."
+  },
+  {
+    q: "Segundo a pesquisa TIC Educação 2024 citada no documento, qual porcentagem dos estudantes do Ensino Médio já usa IA generativa?",
+    options: ["37%", "19%", "70%", "43%"],
+    correct: 2,
+    feedback: "✅ Correto! 70% dos estudantes do Ensino Médio já usam IA generativa — mas apenas 19% deles conversaram sobre isso com algum professor."
+  },
+  {
+    q: "O que é IA generativa, segundo o documento do MEC?",
+    options: [
+      "Um sistema que proíbe conteúdos inadequados",
+      "Uma tecnologia que gera conteúdo novo (texto, imagem, áudio) estimando padrões a partir de dados",
+      "Um software de gestão escolar com inteligência artificial",
+      "Uma ferramenta que avalia o desempenho dos alunos automaticamente"
+    ],
+    correct: 1,
+    feedback: "✅ Isso mesmo! A IA generativa não 'sabe' nada — ela estima qual sequência de palavras ou elementos é mais provável dado um contexto."
+  },
+  {
+    q: "O documento afirma que a IA na educação 'não é neutra'. O que isso significa na prática?",
+    options: [
+      "A IA sempre favorece os alunos mais inteligentes",
+      "A IA foi criada para substituir professores",
+      "A IA replica os padrões e vieses dos dados com que foi treinada",
+      "A IA só funciona em escolas privadas"
+    ],
+    correct: 2,
+    feedback: "✅ Correto! Por isso o professor precisa de senso crítico ao usar IA — ela pode reproduzir preconceitos raciais, de gênero ou culturais sem perceber."
+  },
+  {
+    q: "Segundo o documento, para que os benefícios da IA na educação se realizem, três condições são necessárias. Qual das opções abaixo NÃO é uma delas?",
+    options: [
+      "Intencionalidade pedagógica do uso",
+      "Mediação e formação docente",
+      "Compra de dispositivos novos para todos os alunos",
+      "Salvaguardas institucionais"
+    ],
+    correct: 2,
+    feedback: "✅ Perfeito! O documento não exige equipamentos novos — exige intencionalidade, mediação e salvaguardas. A IA desplugada mostra que é possível aprender sobre IA sem internet ou dispositivo!"
+  }
+];
+
+const DRAG_DATA = {
+  items: [
+    { id: "a", text: "Entender algoritmos e modelos de linguagem", zone: 0 },
+    { id: "b", text: "Reconhecer vieses em conteúdos gerados por IA", zone: 1 },
+    { id: "c", text: "Compreender impactos ambientais da IA", zone: 2 },
+    { id: "d", text: "Desenvolver raciocínio lógico e computacional", zone: 0 },
+    { id: "e", text: "Aprendizagem autorregulada com apoio da IA", zone: 1 },
+    { id: "f", text: "Direitos e deveres nos ambientes digitais", zone: 2 },
+    { id: "g", text: "Projetos colaborativos humano-IA", zone: 0 },
+    { id: "h", text: "Identificar privacidade e bolhas de informação", zone: 1 },
+    { id: "i", text: "Competências socioemocionais e autonomia", zone: 2 }
+  ],
+  zones: [
+    { label: "🖥️ Letramento Computacional e Algorítmico", color: "#2563EB" },
+    { label: "📱 Letramento Digital, Informacional e Midiático", color: "#8B5CF6" },
+    { label: "🌍 Impactos Sociais, Ambientais e Éticos", color: "#10B981" }
+  ]
+};
+
+const PHASE3_QUESTIONS = [
+  {
+    q: "Um professor usa IA generativa para criar um rascunho de relatório descritivo e depois personaliza com observações de cada aluno. Isso é uma BOA prática de uso intencional da IA.",
+    correct: true,
+    feedback: "✅ Verdadeiro! Isso é exatamente o que o documento descreve como uso intencional: a IA automatiza o repetitivo, o professor acrescenta o julgamento pedagógico."
+  },
+  {
+    q: "O 'descarregamento cognitivo' acontece quando o aluno usa a IA de forma crítica e reflexiva, desenvolvendo mais habilidades de pensamento.",
+    correct: false,
+    feedback: "❌ Falso! O descarregamento cognitivo é justamente o oposto: quando a IA faz o trabalho mental que o aluno deveria fazer, enfraquecendo o desenvolvimento cognitivo."
+  },
+  {
+    q: "O documento do MEC orienta que nenhum professor deve ser penalizado por optar por não usar uma ferramenta de IA se avaliar que ela não atende às necessidades de sua turma.",
+    correct: true,
+    feedback: "✅ Verdadeiro! A autonomia pedagógica docente é um princípio central do documento. O uso de IA deve ser uma escolha pedagógica, não uma obrigação."
+  },
+  {
+    q: "A correção automatizada de redações por IA é sempre mais justa e precisa do que a avaliação do professor, pois elimina a subjetividade.",
+    correct: false,
+    feedback: "❌ Falso! O documento alerta que sistemas de avaliação automatizada podem penalizar variações linguísticas regionais, criatividade e não capturar a complexidade do pensamento."
+  },
+  {
+    q: "Ferramentas de IA que usam reconhecimento facial ou monitoramento comportamental para vigilância massiva dos alunos NÃO são recomendadas pelo documento.",
+    correct: true,
+    feedback: "✅ Verdadeiro! O princípio de 'proteção de dados e não-vigilância' do documento é claro: essas tecnologias só devem ser usadas em casos específicos e com consentimentos explícitos."
+  }
+];
+
+const PHASE4_QUESTIONS = [
+  {
+    q: "O documento propõe 4 domínios de formação docente para a era da IA. Qual destes NÃO é um deles?",
+    options: [
+      "Compreensão Crítica da IA",
+      "Uso Pedagógico Intencional da IA",
+      "Domínio de Programação em Python",
+      "Proteção de Direitos e Bem-Estar"
+    ],
+    correct: 2,
+    feedback: "✅ Correto! O professor não precisa saber programar. Os 4 domínios são: Compreensão Crítica, Uso Pedagógico Intencional, Proteção de Direitos e Desenvolvimento Profissional."
+  },
+  {
+    q: "Qual é a frase que melhor resume a visão do documento sobre o papel da IA na educação?",
+    options: [
+      "A IA deve substituir o professor nas tarefas difíceis",
+      "A IA deve ser incorporada como meio para o desenvolvimento humano e o pensamento crítico",
+      "A IA deve ser proibida nas escolas públicas até 2030",
+      "A IA é mais confiável que o professor para avaliar alunos"
+    ],
+    correct: 1,
+    feedback: "✅ Essa é a frase-chave do documento! A IA é meio, não fim. O centro sempre é o desenvolvimento humano."
+  },
+  {
+    q: "O que significa 'intencionalidade pedagógica' no uso da IA, segundo o documento?",
+    options: [
+      "Usar IA em todas as aulas, todos os dias",
+      "Saber responder: por que, quando e como usar IA para este objetivo de aprendizagem específico",
+      "Comprar as ferramentas mais modernas disponíveis no mercado",
+      "Deixar os alunos escolherem livremente quais ferramentas usar"
+    ],
+    correct: 1,
+    feedback: "✅ Perfeito! Intencionalidade é a pergunta antes da ferramenta: qual objetivo de aprendizagem esta IA me ajuda a alcançar? Por que é melhor que uma solução sem IA?"
+  },
+  {
+    q: "Qual marco legal brasileiro, de 2025, estabelece proteção específica para crianças e adolescentes em ambientes digitais, proibindo, por exemplo, o perfilamento para publicidade?",
+    options: [
+      "LGPD (Lei Geral de Proteção de Dados)",
+      "Marco Civil da Internet",
+      "ECA Digital (Lei 15.211/2025)",
+      "BNCC — Computação"
+    ],
+    correct: 2,
+    feedback: "✅ Correto! O ECA Digital (2025) é um dos pilares do documento. Ele exige configuração máxima de privacidade por padrão para menores e proíbe publicidade direcionada a eles."
+  }
+];
+
+// ════════════════════════════════════════════════
+// ESTADO DO JOGO
+// ════════════════════════════════════════════════
+const state = {
+  name: '', subject: '',
+  scores: [0,0,0,0],
+  p1q: 0, p1answered: false,
+  p3q: 0, p3answered: false,
+  p4q: 0, p4answered: false,
+  dragPlacements: {},
+  dragItem: null
+};
+
+// ════════════════════════════════════════════════
+// NAVEGAÇÃO
+// ════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ════════════════════════════════════════════════
+// WELCOME
+// ════════════════════════════════════════════════
+function startGame() {
+  const name = document.getElementById('input-name').value.trim();
+  const subject = document.getElementById('input-subject').value.trim();
+  if (!name) {
+    document.getElementById('input-name').focus();
+    document.getElementById('input-name').style.borderColor = 'var(--red)';
+    return;
+  }
+  state.name = name;
+  state.subject = subject || 'Educação Básica';
+  buildPhase1();
+  showScreen('screen-phase1');
+}
+
+// ════════════════════════════════════════════════
+// FASE 1 — MÚLTIPLA ESCOLHA
+// ════════════════════════════════════════════════
+function buildPhase1() {
+  buildDots('p1-dots', PHASE1_QUESTIONS.length, 0);
+  renderP1Question();
+}
+
+function renderP1Question() {
+  const i = state.p1q;
+  const q = PHASE1_QUESTIONS[i];
+  state.p1answered = false;
+  document.getElementById('p1-next').style.display = 'none';
+  updateDots('p1-dots', PHASE1_QUESTIONS.length, i);
+
+  const letters = ['A','B','C','D'];
+  const html = `
+    <div class="question-card">
+      <div class="q-number">Pergunta ${i+1} de ${PHASE1_QUESTIONS.length}</div>
+      <div class="q-text">${q.q}</div>
+    </div>
+    <div class="options">
+      ${q.options.map((opt,j) => `
+        <button class="option-btn" id="opt1-${j}" onclick="answerP1(${j})">
+          <span class="option-letter">${letters[j]}</span>
+          <span>${opt}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div class="feedback-box" id="p1-feedback"></div>
+  `;
+  document.getElementById('p1-content').innerHTML = html;
+}
+
+function answerP1(chosen) {
+  if (state.p1answered) return;
+  state.p1answered = true;
+  const q = PHASE1_QUESTIONS[state.p1q];
+  const correct = q.correct === chosen;
+  if (correct) {
+    state.scores[0] += 20;
+    document.getElementById(`opt1-${chosen}`).classList.add('selected-correct');
+    document.getElementById('p1-feedback').className = 'feedback-box correct';
+    document.getElementById('p1-feedback').textContent = q.feedback;
+    mini_confetti();
+  } else {
+    document.getElementById(`opt1-${chosen}`).classList.add('selected-wrong');
+    document.getElementById(`opt1-${q.correct}`).classList.add('reveal-correct');
+    document.getElementById('p1-feedback').className = 'feedback-box wrong';
+    document.getElementById('p1-feedback').textContent = q.feedback;
+  }
+  // disable all
+  document.querySelectorAll('[id^="opt1-"]').forEach(b => b.classList.add('disabled'));
+  document.getElementById('p1-score-label').textContent = `⭐ ${state.scores[0]} pts`;
+  document.getElementById('p1-next').style.display = 'block';
+  document.getElementById('p1-next').textContent =
+    state.p1q < PHASE1_QUESTIONS.length - 1 ? 'Próxima pergunta →' : 'Concluir Fase 1 ✓';
+}
+
+function phase1Next() {
+  state.p1q++;
+  if (state.p1q < PHASE1_QUESTIONS.length) {
+    renderP1Question();
+    document.getElementById('p1-next').style.display = 'none';
+  } else {
+    document.getElementById('gate1-score').textContent = state.scores[0] + ' pontos';
+    showScreen('screen-gate1');
+  }
+}
+
+// ════════════════════════════════════════════════
+// GATE 1
+// ════════════════════════════════════════════════
+function checkGate1() {
+  const val = document.getElementById('gate1-input').value.trim().toLowerCase();
+  document.getElementById('gate1-btn').disabled = val.length < 4;
+  document.getElementById('gate1-input').classList.remove('error');
+  document.getElementById('gate1-hint').classList.remove('show');
+}
+
+function openGate1() {
+  const val = document.getElementById('gate1-input').value.trim().toLowerCase();
+  if (val === 'sobre') {
+    buildPhase2();
+    showScreen('screen-phase2');
+  } else {
+    document.getElementById('gate1-input').classList.add('error');
+    document.getElementById('gate1-hint').classList.add('show');
+    setTimeout(() => document.getElementById('gate1-input').classList.remove('error'), 400);
+  }
+}
+
+// ════════════════════════════════════════════════
+// FASE 2 — DRAG & DROP
+// ════════════════════════════════════════════════
+function buildPhase2() {
+  // shuffle items
+  const items = [...DRAG_DATA.items].sort(() => Math.random() - 0.5);
+  state.dragPlacements = {};
+
+  const zonesHtml = DRAG_DATA.zones.map((z,i) => `
+    <div class="drop-zone" id="zone-${i}" 
+      ondragover="dragOver(event,${i})" ondragleave="dragLeave(event,${i})" ondrop="dropItem(event,${i})">
+      <div class="drop-zone-label" style="color:${z.color}">${z.label}</div>
+      <div class="drop-zone-items" id="zone-items-${i}"></div>
+    </div>
+  `).join('');
+
+  const itemsHtml = items.map(item => `
+    <div class="drag-item" id="drag-${item.id}" draggable="true"
+      ondragstart="dragStart(event,'${item.id}')"
+      ondragend="dragEnd(event)"
+      ontouchstart="touchStart(event,'${item.id}')"
+      ontouchmove="touchMove(event)"
+      ontouchend="touchEnd(event,'${item.id}')">
+      ${item.text}
+    </div>
+  `).join('');
+
+  document.getElementById('p2-content').innerHTML = `
+    <div class="question-card" style="margin-bottom:12px">
+      <div class="q-number">Instrução</div>
+      <div class="q-text" style="font-size:14px">Arraste cada aprendizagem para o conjunto de letramentos correto, conforme o documento do MEC.</div>
+    </div>
+    <div class="drag-area">
+      <div class="drag-label">Aprendizagens para classificar</div>
+      <div class="drag-items" id="drag-source">${itemsHtml}</div>
+    </div>
+    <div class="drop-zones">${zonesHtml}</div>
+    <div class="feedback-box" id="p2-feedback" style="margin-top:12px"></div>
+  `;
+
+  setupTouchDrag();
+}
+
+// Mouse drag
+function dragStart(e, id) {
+  state.dragItem = id;
+  e.dataTransfer.setData('text/plain', id);
+  setTimeout(() => document.getElementById('drag-'+id).classList.add('dragging'), 0);
+}
+function dragEnd(e) {
+  if(state.dragItem) document.getElementById('drag-'+state.dragItem)?.classList.remove('dragging');
+}
+function dragOver(e, zoneIdx) {
+  e.preventDefault();
+  document.getElementById('zone-'+zoneIdx).classList.add('over');
+}
+function dragLeave(e, zoneIdx) {
+  document.getElementById('zone-'+zoneIdx).classList.remove('over');
+}
+function dropItem(e, zoneIdx) {
+  e.preventDefault();
+  document.getElementById('zone-'+zoneIdx).classList.remove('over');
+  const id = e.dataTransfer.getData('text/plain') || state.dragItem;
+  moveItemToZone(id, zoneIdx);
+}
+
+function moveItemToZone(id, zoneIdx) {
+  const el = document.getElementById('drag-'+id);
+  if (!el) return;
+  state.dragPlacements[id] = zoneIdx;
+  const zoneItems = document.getElementById('zone-items-'+zoneIdx);
+  // create copy in zone
+  const copy = document.createElement('div');
+  copy.className = 'drop-item';
+  copy.id = 'placed-'+id;
+  copy.textContent = el.textContent.trim();
+  copy.dataset.id = id;
+  copy.draggable = true;
+  copy.addEventListener('dragstart', (ev) => {
+    state.dragItem = id;
+    ev.dataTransfer.setData('text/plain', id);
+  });
+  // allow dragging back
+  const source = document.getElementById('drag-source');
+  source.ondragover = (ev) => ev.preventDefault();
+  source.ondrop = (ev) => {
+    ev.preventDefault();
+    const pid = ev.dataTransfer.getData('text/plain') || state.dragItem;
+    returnItemToSource(pid);
+  };
+  // remove from previous zone if any
+  const prev = document.getElementById('placed-'+id);
+  if (prev) prev.remove();
+  // hide original
+  el.style.display = 'none';
+  zoneItems.appendChild(copy);
+}
+
+function returnItemToSource(id) {
+  const placed = document.getElementById('placed-'+id);
+  if (placed) placed.remove();
+  const orig = document.getElementById('drag-'+id);
+  if (orig) orig.style.display = '';
+  delete state.dragPlacements[id];
+}
+
+// Touch drag simulation
+let touchEl = null, touchClone = null, touchId = null;
+function setupTouchDrag() {}
+
+function touchStart(e, id) {
+  touchId = id;
+  touchEl = document.getElementById('drag-'+id);
+  touchClone = touchEl.cloneNode(true);
+  touchClone.style.cssText = `position:fixed;z-index:9999;pointer-events:none;opacity:0.85;transform:scale(1.05);transition:none;`;
+  document.body.appendChild(touchClone);
+  const t = e.touches[0];
+  const r = touchEl.getBoundingClientRect();
+  touchClone.style.left = (t.clientX - r.width/2) + 'px';
+  touchClone.style.top = (t.clientY - r.height/2) + 'px';
+  touchEl.classList.add('dragging');
+  e.preventDefault();
+}
+
+function touchMove(e) {
+  if (!touchClone) return;
+  const t = e.touches[0];
+  touchClone.style.left = (t.clientX - touchClone.offsetWidth/2) + 'px';
+  touchClone.style.top = (t.clientY - touchClone.offsetHeight/2) + 'px';
+  e.preventDefault();
+}
+
+function touchEnd(e, id) {
+  if (!touchClone) return;
+  const t = e.changedTouches[0];
+  touchClone.remove();
+  touchClone = null;
+  if (touchEl) touchEl.classList.remove('dragging');
+
+  // find which zone
+  const zones = document.querySelectorAll('.drop-zone');
+  let dropped = false;
+  zones.forEach((zone, idx) => {
+    const r = zone.getBoundingClientRect();
+    if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
+      moveItemToZone(id, idx);
+      dropped = true;
+    }
+  });
+  // check if dropped back on source
+  if (!dropped) {
+    const src = document.getElementById('drag-source');
+    const r = src.getBoundingClientRect();
+    if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
+      returnItemToSource(id);
+    }
+  }
+}
+
+function checkDrag() {
+  let correct = 0;
+  DRAG_DATA.items.forEach(item => {
+    if (state.dragPlacements[item.id] === item.zone) correct++;
+  });
+  const pts = Math.round((correct / DRAG_DATA.items.length) * 100);
+  state.scores[1] = pts;
+  document.getElementById('p2-score-label').textContent = `⭐ ${pts} pts`;
+
+  const fb = document.getElementById('p2-feedback');
+  if (correct === DRAG_DATA.items.length) {
+    fb.className = 'feedback-box correct';
+    fb.textContent = `✅ Perfeito! Você classificou todas as ${DRAG_DATA.items.length} aprendizagens corretamente!`;
+    mini_confetti();
+    setTimeout(() => {
+      document.getElementById('gate2-score').textContent = pts + ' pontos';
+      showScreen('screen-gate2');
+    }, 1800);
+  } else {
+    fb.className = 'feedback-box wrong';
+    fb.textContent = `❌ Você acertou ${correct} de ${DRAG_DATA.items.length}. Verifique suas classificações e tente novamente!`;
+    // highlight wrong
+    DRAG_DATA.items.forEach(item => {
+      if (state.dragPlacements[item.id] !== undefined && state.dragPlacements[item.id] !== item.zone) {
+        const placed = document.getElementById('placed-'+item.id);
+        if (placed) { placed.style.background='var(--red-light)'; placed.style.borderColor='var(--red)'; placed.style.color='var(--red)'; }
+      }
+    });
+  }
+}
+
+// ════════════════════════════════════════════════
+// GATE 2
+// ════════════════════════════════════════════════
+function checkGate2() {
+  const val = document.getElementById('gate2-input').value.trim().toLowerCase();
+  document.getElementById('gate2-btn').disabled = val.length < 4;
+  document.getElementById('gate2-input').classList.remove('error');
+  document.getElementById('gate2-hint').classList.remove('show');
+}
+
+function openGate2() {
+  const val = document.getElementById('gate2-input').value.trim().toLowerCase();
+  const accepted = ['cognitivo','cognitiva'];
+  if (accepted.includes(val)) {
+    buildPhase3();
+    showScreen('screen-phase3');
+  } else {
+    document.getElementById('gate2-input').classList.add('error');
+    document.getElementById('gate2-hint').classList.add('show');
+    setTimeout(() => document.getElementById('gate2-input').classList.remove('error'), 400);
+  }
+}
+
+// ════════════════════════════════════════════════
+// FASE 3 — VERDADEIRO/FALSO
+// ════════════════════════════════════════════════
+function buildPhase3() {
+  state.p3q = 0;
+  buildDots('p3-dots', PHASE3_QUESTIONS.length, 0);
+  renderP3Question();
+}
+
+function renderP3Question() {
+  const i = state.p3q;
+  const q = PHASE3_QUESTIONS[i];
+  state.p3answered = false;
+  document.getElementById('p3-next').style.display = 'none';
+  updateDots('p3-dots', PHASE3_QUESTIONS.length, i);
+
+  const html = `
+    <div class="question-card">
+      <div class="q-number">Afirmação ${i+1} de ${PHASE3_QUESTIONS.length}</div>
+      <div class="q-text">${q.q}</div>
+    </div>
+    <div class="tf-grid">
+      <button class="tf-btn true-btn" id="tf-true" onclick="answerP3(true)">
+        <span class="tf-icon">✅</span>
+        <span>Verdadeiro</span>
+      </button>
+      <button class="tf-btn false-btn" id="tf-false" onclick="answerP3(false)">
+        <span class="tf-icon">❌</span>
+        <span>Falso</span>
+      </button>
+    </div>
+    <div class="feedback-box" id="p3-feedback"></div>
+  `;
+  document.getElementById('p3-content').innerHTML = html;
+}
+
+function answerP3(chosen) {
+  if (state.p3answered) return;
+  state.p3answered = true;
+  const q = PHASE3_QUESTIONS[state.p3q];
+  const correct = chosen === q.correct;
+
+  document.getElementById('tf-true').disabled = true;
+  document.getElementById('tf-false').disabled = true;
+
+  if (correct) {
+    state.scores[2] += 20;
+    const btn = chosen ? document.getElementById('tf-true') : document.getElementById('tf-false');
+    btn.classList.add('selected-correct');
+    document.getElementById('p3-feedback').className = 'feedback-box correct';
+    mini_confetti();
+  } else {
+    const btn = chosen ? document.getElementById('tf-true') : document.getElementById('tf-false');
+    btn.classList.add('selected-wrong');
+    document.getElementById('p3-feedback').className = 'feedback-box wrong';
+  }
+  document.getElementById('p3-feedback').textContent = q.feedback;
+  document.getElementById('p3-score-label').textContent = `⭐ ${state.scores[2]} pts`;
+  document.getElementById('p3-next').style.display = 'block';
+  document.getElementById('p3-next').textContent =
+    state.p3q < PHASE3_QUESTIONS.length - 1 ? 'Próxima →' : 'Concluir Fase 3 ✓';
+}
+
+function phase3Next() {
+  state.p3q++;
+  if (state.p3q < PHASE3_QUESTIONS.length) {
+    renderP3Question();
+    document.getElementById('p3-next').style.display = 'none';
+  } else {
+    document.getElementById('gate3-score').textContent = state.scores[2] + ' pontos';
+    showScreen('screen-gate3');
+  }
+}
+
+// ════════════════════════════════════════════════
+// GATE 3
+// ════════════════════════════════════════════════
+function checkGate3() {
+  const val = document.getElementById('gate3-input').value.trim().toLowerCase();
+  document.getElementById('gate3-btn').disabled = val.length < 3;
+  document.getElementById('gate3-input').classList.remove('error');
+  document.getElementById('gate3-hint').classList.remove('show');
+}
+
+function openGate3() {
+  const val = document.getElementById('gate3-input').value.trim().toLowerCase();
+  const accepted = ['meio','meios'];
+  if (accepted.includes(val)) {
+    buildPhase4();
+    showScreen('screen-phase4');
+  } else {
+    document.getElementById('gate3-input').classList.add('error');
+    document.getElementById('gate3-hint').classList.add('show');
+    setTimeout(() => document.getElementById('gate3-input').classList.remove('error'), 400);
+  }
+}
+
+// ════════════════════════════════════════════════
+// FASE 4 — MÚLTIPLA ESCOLHA FINAL
+// ════════════════════════════════════════════════
+function buildPhase4() {
+  state.p4q = 0;
+  buildDots('p4-dots', PHASE4_QUESTIONS.length, 0);
+  renderP4Question();
+}
+
+function renderP4Question() {
+  const i = state.p4q;
+  const q = PHASE4_QUESTIONS[i];
+  state.p4answered = false;
+  document.getElementById('p4-next').style.display = 'none';
+  updateDots('p4-dots', PHASE4_QUESTIONS.length, i);
+
+  const letters = ['A','B','C','D'];
+  const html = `
+    <div class="question-card">
+      <div class="q-number">Desafio Final ${i+1} de ${PHASE4_QUESTIONS.length}</div>
+      <div class="q-text">${q.q}</div>
+    </div>
+    <div class="options">
+      ${q.options.map((opt,j) => `
+        <button class="option-btn" id="opt4-${j}" onclick="answerP4(${j})">
+          <span class="option-letter">${letters[j]}</span>
+          <span>${opt}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div class="feedback-box" id="p4-feedback"></div>
+  `;
+  document.getElementById('p4-content').innerHTML = html;
+}
+
+function answerP4(chosen) {
+  if (state.p4answered) return;
+  state.p4answered = true;
+  const q = PHASE4_QUESTIONS[state.p4q];
+  const correct = q.correct === chosen;
+  if (correct) {
+    state.scores[3] += 25;
+    document.getElementById(`opt4-${chosen}`).classList.add('selected-correct');
+    document.getElementById('p4-feedback').className = 'feedback-box correct';
+    mini_confetti();
+  } else {
+    document.getElementById(`opt4-${chosen}`).classList.add('selected-wrong');
+    document.getElementById(`opt4-${q.correct}`).classList.add('reveal-correct');
+    document.getElementById('p4-feedback').className = 'feedback-box wrong';
+  }
+  document.getElementById('p4-feedback').textContent = q.feedback;
+  document.querySelectorAll('[id^="opt4-"]').forEach(b => b.classList.add('disabled'));
+  document.getElementById('p4-score-label').textContent = `⭐ ${state.scores[3]} pts`;
+  document.getElementById('p4-next').style.display = 'block';
+  document.getElementById('p4-next').textContent =
+    state.p4q < PHASE4_QUESTIONS.length - 1 ? 'Próxima →' : 'Ver resultado final 🏆';
+}
+
+function phase4Next() {
+  state.p4q++;
+  if (state.p4q < PHASE4_QUESTIONS.length) {
+    renderP4Question();
+    document.getElementById('p4-next').style.display = 'none';
+  } else {
+    showFinal();
+  }
+}
+
+// ════════════════════════════════════════════════
+// TELA FINAL
+// ════════════════════════════════════════════════
+function showFinal() {
+  const total = state.scores.reduce((a,b) => a+b, 0);
+  const maxScore = (PHASE1_QUESTIONS.length * 20) + 100 + (PHASE3_QUESTIONS.length * 20) + (PHASE4_QUESTIONS.length * 25);
+
+  // Badge baseado na pontuação
+  let medal, badgeIcon, badgeTitle, badgeDesc;
+  const pct = total / maxScore;
+  if (pct >= 0.9) {
+    medal = '🏆'; badgeIcon = '🌟';
+    badgeTitle = 'Mestre em IA Educacional';
+    badgeDesc = `${state.name.split(' ')[0]}, você demonstrou domínio completo dos princípios do documento do MEC! Está pronto(a) para ser referência na sua escola sobre IA na Educação.`;
+  } else if (pct >= 0.7) {
+    medal = '🥇'; badgeIcon = '🚀';
+    badgeTitle = 'Educador(a) Digital Avançado(a)';
+    badgeDesc = `${state.name.split(' ')[0]}, excelente desempenho! Você compreende os pilares da IA na Educação e está no caminho certo para integrar essas práticas em suas aulas.`;
+  } else if (pct >= 0.5) {
+    medal = '🥈'; badgeIcon = '📡';
+    badgeTitle = 'Explorador(a) em Formação';
+    badgeDesc = `${state.name.split(' ')[0]}, bom começo! Revise os pontos em que teve dificuldade — o documento do MEC é um ótimo guia para aprofundar seu letramento em IA.`;
+  } else {
+    medal = '🌱'; badgeIcon = '🔭';
+    badgeTitle = 'Aprendiz da Galáxia Digital';
+    badgeDesc = `${state.name.split(' ')[0]}, toda jornada começa com o primeiro passo! Releia o documento orientador do MEC e refaça a missão — cada tentativa é aprendizado.`;
+  }
+
+  document.getElementById('final-medal').textContent = medal;
+  document.getElementById('final-name').textContent = `Parabéns, ${state.name.split(' ')[0]}!`;
+  document.getElementById('final-badge-name').textContent = `${state.subject} · Missão concluída`;
+  document.getElementById('final-score-num').textContent = total;
+  document.getElementById('badge-icon').textContent = badgeIcon;
+  document.getElementById('badge-title').textContent = badgeTitle;
+  document.getElementById('badge-desc').textContent = badgeDesc;
+
+  document.getElementById('sum1').textContent = state.scores[0] + ' pts';
+  document.getElementById('sum2').textContent = state.scores[1] + ' pts';
+  document.getElementById('sum3').textContent = state.scores[2] + ' pts';
+  document.getElementById('sum4').textContent = state.scores[3] + ' pts';
+
+  showScreen('screen-final');
+  setTimeout(() => big_confetti(), 300);
+}
+
+function restartGame() {
+  state.scores = [0,0,0,0];
+  state.p1q = 0; state.p3q = 0; state.p4q = 0;
+  state.dragPlacements = {};
+  document.getElementById('input-name').value = '';
+  document.getElementById('input-subject').value = '';
+  document.getElementById('gate1-input').value = '';
+  document.getElementById('gate2-input').value = '';
+  document.getElementById('gate3-input').value = '';
+  showScreen('screen-welcome');
+}
+
+// ════════════════════════════════════════════════
+// UTILITÁRIOS
+// ════════════════════════════════════════════════
+function buildDots(containerId, total, current) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  c.innerHTML = Array.from({length: total}, (_,i) =>
+    `<div class="dot ${i < current ? 'done' : i === current ? 'active' : ''}"></div>`
+  ).join('');
+}
+
+function updateDots(containerId, total, current) {
+  const dots = document.getElementById(containerId)?.querySelectorAll('.dot');
+  if (!dots) return;
+  dots.forEach((d,i) => {
+    d.className = 'dot' + (i < current ? ' done' : i === current ? ' active' : '');
+  });
+}
+
+function mini_confetti() {
+  const colors = ['#2563EB','#F59E0B','#8B5CF6','#10B981','#EF4444'];
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.cssText = `
+      left: ${Math.random()*100}vw;
+      background: ${colors[Math.floor(Math.random()*colors.length)]};
+      width: ${6+Math.random()*8}px;
+      height: ${6+Math.random()*8}px;
+      border-radius: ${Math.random()>0.5?'50%':'2px'};
+      animation-duration: ${1.5+Math.random()}s;
+      animation-delay: ${Math.random()*0.3}s;
+    `;
+    document.getElementById('confetti').appendChild(p);
+    setTimeout(() => p.remove(), 2500);
+  }
+}
+
+function big_confetti() {
+  const colors = ['#2563EB','#F59E0B','#8B5CF6','#10B981','#EF4444','#F97316'];
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.className = 'confetti-piece';
+      p.style.cssText = `
+        left: ${Math.random()*100}vw;
+        background: ${colors[Math.floor(Math.random()*colors.length)]};
+        width: ${8+Math.random()*10}px;
+        height: ${8+Math.random()*10}px;
+        border-radius: ${Math.random()>0.5?'50%':'2px'};
+        animation-duration: ${2.5+Math.random()*1.5}s;
+      `;
+      document.getElementById('confetti').appendChild(p);
+      setTimeout(() => p.remove(), 4500);
+    }, i * 40);
+  }
+}
+</script>
+</body>
+</html>
