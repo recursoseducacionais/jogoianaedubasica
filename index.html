@@ -1308,27 +1308,39 @@ function checkDrag() {
   });
   const pts = Math.round((correct / DRAG_DATA.items.length) * 100);
   state.scores[1] = pts;
-  document.getElementById('p2-score-label').textContent = `⭐ ${pts} pts`;
+  document.getElementById("p2-score-label").textContent = `⭐ ${pts} pts`;
 
-  const fb = document.getElementById('p2-feedback');
+  const fb = document.getElementById("p2-feedback");
   if (correct === DRAG_DATA.items.length) {
-    fb.className = 'feedback-box correct';
+    fb.className = "feedback-box correct";
     fb.textContent = `✅ Perfeito! Você classificou todas as ${DRAG_DATA.items.length} aprendizagens corretamente!`;
     mini_confetti();
+    document.getElementById("p2-check").style.display = "none";
     setTimeout(() => {
-      document.getElementById('gate2-score').textContent = pts + ' pontos';
-      showScreen('screen-gate2');
+      document.getElementById("gate2-score").textContent = pts + " pontos";
+      showScreen("screen-gate2");
     }, 1800);
   } else {
-    fb.className = 'feedback-box wrong';
-    fb.textContent = `❌ Você acertou ${correct} de ${DRAG_DATA.items.length}. Verifique suas classificações e tente novamente!`;
-    // highlight wrong
+    fb.className = "feedback-box wrong";
+    fb.innerHTML = `❌ Você acertou ${correct} de ${DRAG_DATA.items.length}. Os itens em vermelho estão na categoria errada.`;
     DRAG_DATA.items.forEach(item => {
       if (state.dragPlacements[item.id] !== undefined && state.dragPlacements[item.id] !== item.zone) {
-        const placed = document.getElementById('placed-'+item.id);
-        if (placed) { placed.style.background='var(--red-light)'; placed.style.borderColor='var(--red)'; placed.style.color='var(--red)'; }
+        const placed = document.getElementById("placed-"+item.id);
+        if (placed) { placed.style.background="var(--red-light)"; placed.style.borderColor="var(--red)"; placed.style.color="var(--red)"; }
       }
     });
+    const checkBtn = document.getElementById("p2-check");
+    checkBtn.textContent = "↩ Tentar novamente";
+    checkBtn.onclick = () => buildPhase2();
+    if (!document.getElementById("p2-skip")) {
+      const skipBtn = document.createElement("button");
+      skipBtn.className = "btn-secondary";
+      skipBtn.id = "p2-skip";
+      skipBtn.textContent = "Avançar mesmo assim →";
+      skipBtn.style.cssText = "width:calc(100% - 40px);margin:8px 20px 16px;";
+      skipBtn.onclick = () => { document.getElementById("gate2-score").textContent = pts + " pontos"; showScreen("screen-gate2"); };
+      checkBtn.parentNode.insertBefore(skipBtn, checkBtn.nextSibling);
+    }
   }
 }
 
